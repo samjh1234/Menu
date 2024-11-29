@@ -218,45 +218,45 @@
     function exportPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
+    
         const pageHeight = doc.internal.pageSize.height;
         const pageWidth = doc.internal.pageSize.width;
         const bottomMargin = 20;
         const startYInitial = 20;
         let startY = startYInitial;
-
+    
         const week = document.getElementById("week").value;
-
+    
         doc.setFontSize(16);
         doc.text(`${week.charAt(0).toUpperCase() + week.slice(1)}`, pageWidth / 2, startY, { align: 'center' });
         startY += 15;
-
+    
         const days = document.querySelectorAll('.day-table');
-
+    
         days.forEach((dayTable, index) => {
             const dayName = dayTable.querySelector('tbody tr td').textContent.trim();
             const rows = [];
             const tableRows = dayTable.querySelectorAll('tbody tr');
-
+    
             tableRows.forEach(row => {
                 const cells = row.querySelectorAll('input');
                 const pranzoValue = cells[0]?.value || "";
                 const cenaValue = cells[1]?.value || "";
-
+    
                 rows.push([pranzoValue, cenaValue]);
             });
-
+    
             const estimatedTableHeight = rows.length * 10 + 10;
-
+    
             if (startY + estimatedTableHeight > pageHeight - bottomMargin) {
                 doc.addPage();
                 startY = startYInitial;
             }
-
+    
             doc.setFontSize(14);
             doc.text(dayName, pageWidth / 2, startY, { align: 'center' });
             startY += 10;
-
+    
             doc.autoTable({
                 startY: startY,
                 head: [["Pranzo", "Cena"]],
@@ -265,7 +265,7 @@
                 styles: { fontSize: 10, halign: 'center', valign: 'middle' },
                 didDrawPage: data => startY = data.cursor.y + 10
             });
-
+    
             if (index < days.length - 1) {
                 if (startY + 10 > pageHeight - bottomMargin) {
                     doc.addPage();
@@ -275,13 +275,12 @@
                 doc.setLineWidth(1.5);
                 doc.setDrawColor(0, 0, 0);
                 doc.line(10, startY, pageWidth - 10, startY);
-                startY += 5;
+                startY += 10; // Add additional space after the divider line
             }
         });
-
+    
         doc.save("menu.pdf");
     }
-
     document.addEventListener("DOMContentLoaded", () => {
         populateDatalist();
 
