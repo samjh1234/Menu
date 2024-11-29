@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .export-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .export-button:hover {
+            background-color: #0056b3;
+        }
+        .week-selector {
+            width: 90%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .week-selector select {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+            text-align-last: center;
+            width: 100%;
+        }
+        h2 {
+            margin-top: 10px;
+        }
+        .day-table {
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .day-cell {
+            width: 20%;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .action-button {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background-color: transparent;
+        }
+        .action-button.plus.alt {
+            background:
+                linear-gradient(#000 0 0),
+                linear-gradient(#000 0 0);
+            background-position: center;
+            background-size: 60% 2px, 2px 60%;
+            background-repeat: no-repeat;
+        }
+        .action-button.minus.alt {
+            background: linear-gradient(#000 0 0);
+            background-size: 60% 2px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        input[list] {
+            width: 100%;
+            padding: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .export-button {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            th, td {
+                padding: 6px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<datalist id="dishes-list"></datalist>
+
+<!-- Export Button -->
+<button class="export-button" onclick="exportPDF()">Esporta</button>
+
+<h2>Menu</h2>
+
+<!-- Week's Number Dropdown -->
+<div class="week-selector">
+    <label for="week">Numero Settimana:</label>
+    <select id="week">
+        <option value="prima settimana">Prima Settimana</option>
+        <option value="seconda settimana">Seconda Settimana</option>
+        <option value="terza settimana">Terza Settimana</option>
+        <option value="quarta settimana">Quarta Settimana</option>
+    </select>
+</div>
+
+<!-- Day Tables -->
+<div id="days-container">
+    <!-- Dynamically generated day tables -->
+</div>
+
+<script>
+    const dishes = [
+        "Pasta al pomodoro", "Pollo", "Insalata mista", "Pasta con funghi",
+        "Carne macinata", "Finocchio", "Pasta con pancetta",
+        "Tacchino", "Spinaci", "Pasta in bianco all’aglio e peperoncino",
+        "Spezzatino", "Broccoli", "Pasta con verdure", "Bastoncini di pesce",
+        "Zucchine", "Piselli", "Arista", "Pasta con carne macinata",
+        "Verdure miste", "Risotto al cavolo nero", "Uova", "Patate",
+        "Pasta in bianco", "Minestrina", "Prosciutto cotto", "Melanzana",
+        "Mozzarella", "Pizza o bruschetta con pomodoro", "Minestrone di verdure",
+        "Formaggio", "Verdure miste al forno", "Risotto con cipolla", "Tonno",
+        "Minestrina con tortellini", "Bruschetta", "Affettato misto"
+    ];
+
+    function populateDatalist() {
+        const datalist = document.getElementById("dishes-list");
+        dishes.forEach(dish => {
+            const option = document.createElement("option");
+            option.value = dish;
+            datalist.appendChild(option);
+        });
+    }
+
+    function addRow(event) {
+        const dayTable = event.target.closest('.day-table');
+        const table = dayTable.querySelector('tbody');
+        const rows = table.getElementsByTagName('tr');
+
+        if (rows.length >= 15) {
+            alert("Non puoi aggiungere più di 15 righe!");
+            return;
+        }
+        
+        const newRow = table.insertRow();
+
+        const pranzoCell = newRow.insertCell();
+        pranzoCell.innerHTML = `<input list="dishes-list" placeholder="">`;
+
+        const cenaCell = newRow.insertCell();
+        cenaCell.innerHTML = `<input list="dishes-list" placeholder="">`;
+
+        const actionCell = newRow.insertCell();
+        actionCell.classList.add('action-buttons');
+        actionCell.innerHTML = `
+            <button class="action-button plus alt"></button>
+            <button class="action-button minus alt"></button>`;
+        actionCell.querySelector('.plus.alt').addEventListener('click', addRow);
+        actionCell.querySelector('.minus.alt').addEventListener('click', removeRow);
+
+        const dayCell = rows[0].cells[0];
+        dayCell.rowSpan += 1;
+    }
+
+    function removeRow(event) {
+        const dayTable = event.target.closest('.day-table');
+        const table = dayTable.querySelector('tbody');
+        const rows = table.getElementsByTagName('tr');
+
+        if (rows.length > 1) {
+            table.deleteRow(rows.length - 1);
+            const dayCell = rows[0].cells[0];
+            dayCell.rowSpan -= 1;
+        } else {
+            const pranzoInput = rows[0].cells[1].querySelector('input');
+            const cenaInput = rows[0].cells[2].querySelector('input');
+            pranzoInput.value = "";
+            cenaInput.value = "";
+        }
+    }
+
+    function exportPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const pageHeight = doc.internal.pageSize.height;
+        const pageWidth = doc.internal.pageSize.width;
+        const bottomMargin = 20;
+        const startYInitial = 20;
+        let startY = startYInitial;
+
+        const week = document.getElementById("week").value;
+
+        doc.setFontSize(16);
+        doc.text(`${week.charAt(0).toUpperCase() + week.slice(1)}`, pageWidth / 2, startY, { align: 'center' });
+        startY += 15;
+
+        const days = document.querySelectorAll('.day-table');
+
+        days.forEach((dayTable, index) => {
+            const dayName = dayTable.querySelector('tbody tr td').textContent.trim();
+            const rows = [];
+            const tableRows = dayTable.querySelectorAll('tbody tr');
+
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('input');
+                const pranzoValue = cells[0]?.value || "";
+                const cenaValue = cells[1]?.value || "";
+
+                rows.push([pranzoValue, cenaValue]);
+            });
+
+            const estimatedTableHeight = rows.length * 10 + 10;
+
+            if (startY + estimatedTableHeight > pageHeight - bottomMargin) {
+                doc.addPage();
+                startY = startYInitial;
+            }
+
+            doc.setFontSize(14);
+            doc.text(dayName, pageWidth / 2, startY, { align: 'center' });
+            startY += 10;
+
+            doc.autoTable({
+                startY: startY,
+                head: [["Pranzo", "Cena"]],
+                body: rows,
+                theme: 'grid',
+                styles: { fontSize: 10, halign: 'center', valign: 'middle' },
+                didDrawPage: data => startY = data.cursor.y + 10
+            });
+
+            if (index < days.length - 1) {
+                if (startY + 10 > pageHeight - bottomMargin) {
+                    doc.addPage();
+                    startY = startYInitial;
+                }
+                startY += 5;
+                doc.setLineWidth(1.5);
+                doc.setDrawColor(0, 0, 0);
+                doc.line(10, startY, pageWidth - 10, startY);
+                startY += 5;
+            }
+        });
+
+        doc.save("menu.pdf");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        populateDatalist();
+
+        document.querySelectorAll('.plus.alt').forEach(button => button.addEventListener('click', addRow));
+        document.querySelectorAll('.minus.alt').forEach(button => button.addEventListener('click', removeRow));
+    });
+
+    const daysContainer = document.getElementById('days-container');
+    const days = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+
+    days.forEach(day => {
+        const dayTable = document.createElement('div');
+        dayTable.classList.add('day-table');
+        dayTable.id = day.toLowerCase();
+
+        dayTable.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th class="day-cell">Giorno</th>
+                        <th>Pranzo</th>
+                        <th>Cena</th>
+                        <th class="action-column">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="1">${day}</td>
+                        <td><input list="dishes-list" placeholder=""></td>
+                        <td><input list="dishes-list" placeholder=""></td>
+                        <td class="action-buttons">
+                            <button class="action-button plus alt"></button>
+                            <button class="action-button minus alt"></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+        daysContainer.appendChild(dayTable);
+    });
+</script>
+
+</body>
+</html>
