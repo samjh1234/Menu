@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" sizes="192x192" href="icon-192x192.png">
+    <link rel="icon" sizes="512x512" href="icon-512x512.png">
+    <meta name="theme-color" content="#007bff">
     <title>Menu</title>
     <style>
         body {
@@ -323,6 +327,12 @@
         daysContainer.appendChild(dayTable);
     });
 </script>
-
+<script>
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js")
+            .then(() => console.log("Service Worker Registered"))
+            .catch(error => console.log("Service Worker Registration Failed:", error));
+    }
+</script>
 </body>
 </html>
